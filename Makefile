@@ -1,9 +1,26 @@
-ERL_INCLUDE_PATH=/usr/lib/erlang/usr/include/
-C_SRC=./c_src
-fast_compare.so: $(C_SRC)/fast_compare.c
-	gcc -fPIC -I$(ERL_INCLUDE_PATH) -shared -o $(C_SRC)/fast_compare.so $(C_SRC)/fast_compare.c
+UNAME := $(shell uname)
 
+ifeq ($(UNAME), Darwin)
+ERL_INCLUDE_PATH=/usr/local/Cellar/erlang/19.1/lib/erlang/usr/include/
+CC=clang
+CFLAGS := -undefined dynamic_lookup -dynamiclib -I$(ERL_INCLUDE_PATH)
+else
+ERL_INCLUDE_PATH=/usr/lib/erlang/usr/include/
+CC=gcc
+CFLAGS := -fPIC -shared -I$(ERL_INCLUDE_PATH)
+endif
+
+C_SRC=./c_src
+C_LIB=./c_lib
+
+
+
+fast_compare: $(C_SRC)/fast_compare.c
+	$(CC) $(CFLAGS) -o $(C_LIB)/$@.so $(C_SRC)/$@.c
+
+.PHONY: all
 all: fast_compare.so
 
-clean: 
-	rm $(C_SRC)*.so 
+.PHONY: clean
+clean:
+	rm $(C_LIB)*.so
